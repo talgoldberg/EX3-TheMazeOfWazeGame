@@ -1,5 +1,6 @@
 package gameClient;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -35,12 +36,33 @@ public class SimpleGameClient {
 	public static void main(String[] a) {
 		test1();}
 	public static void test1()   {
-		int scenario_num = 2;
+		int scenario_num = 4;
 		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
-		
+		//game.addRobot(1);
 		String g = game.getGraph();
 		DGraph gg = new DGraph();
-		gg.init(g);
+		String s=game.toString();
+		System.out.println(s);
+		JSONObject l;
+		try {
+		l=new JSONObject(s);
+		JSONObject t = l.getJSONObject("GameServer");
+		int rt=t.getInt("robots");
+		System.out.println(rt);
+		}
+		catch (JSONException e) {e.printStackTrace();}
+		//gg.init(g);
+		ArrayList<String> r = (ArrayList<String>) game.getRobots();
+		
+		r.addAll(game.getRobots());
+		List<String> RJ=game.getRobots();
+		ArrayList<String> rob=new ArrayList<String>();
+		rob=(ArrayList<String>) game.getRobots();
+		String r1=rob.toString();
+		
+		System.out.println(r1);
+		//game.addRobot(2);
+		//System.out.println(game.getRobots());
 		//System.out.println(g);
 		String info = game.toString();
 		JSONObject line;
