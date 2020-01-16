@@ -29,18 +29,18 @@ import utils.StdDraw;
 
 public class MyGameGUI implements Runnable {
 	
-	private Range rx, ry;
-	private static double userX = 0;
-	private static double userY = 0;
-	private final static double epsilon = 0.0000001;
-	private final static double epsilon2 = 0.00019;
+	 Range rx, ry;
+	 static double X = 0;
+	 static double Y = 0;
+	 final static double epsilon = 0.0000001;
+	 final static double epsilon2 = 0.00019;
 	
 	game_service game;
 	graph gr;
 	DGraph dgraph;
 	Graph_GUI gui;
-	ArrayList<Robot> rob=new ArrayList<Robot>();
-	ArrayList<Fruit> fru=new ArrayList<Fruit>();
+	ArrayList<Robot> rob;
+	ArrayList<Fruit> fru;
 	
     public MyGameGUI(int g){
 
@@ -49,8 +49,8 @@ public class MyGameGUI implements Runnable {
        dgraph= new DGraph();
        dgraph.init(graph);
        gui = new Graph_GUI(dgraph);
-       rx = findRx(dgraph);
-       ry = findRy(dgraph);
+       rx = FindXmaxmin(dgraph);
+       ry = FindYmaxmin(dgraph);
        
        Thread t=new Thread(this);
        t.start();
@@ -65,29 +65,31 @@ public class MyGameGUI implements Runnable {
 		addRobot1(numR,game); //add all the robots on scenario nodes 
 		 initTheGameForFruit(game);
 		 initTheGameForRobot(game); //להחליף ב init 
-		//initRobot(game);
-		//drawRobots();
+		 
+		
+	
 		
 		if(JOptionPane.showConfirmDialog(null, "press YES to start the game", "TheMaze of Waze", JOptionPane.YES_OPTION) != JOptionPane.YES_OPTION)
-			System.exit(0);
+		System.exit(0);
 		game.startGame();
 		StdDraw.setFont();
 		StdDraw.setPenColor(Color.BLUE);
 		StdDraw.text( rx.get_max()-0.002, ry.get_max()-0.0005,"time to end: "+game.timeToEnd()/1000);
-		double oldUserX = userX;
-		double oldUserY = userY;
+		double oldX = X;
+		double oldY = Y;
 		
 		while(game.isRunning())
 		{
 			
-			if(userX != oldUserX && userY != oldUserY)
+			if(X != oldX && Y != oldY)
 			{
-				node_data dest = searchForDest(userX, userY);
-				Robot r = searchForRobot(dest);
+				node_data dest = searchForDest(X, Y);
+				Robot r = CloseRobot(dest);
 				game.chooseNextEdge(r.getId(), dest.getKey());
-				oldUserX = userX;
-				oldUserY = userY;
+				oldX = X;
+				oldY = Y;
 			}
+			game.move();
 			RefreshFrame();
 			try 
 			{
@@ -131,8 +133,10 @@ public class MyGameGUI implements Runnable {
 		}
 	}
 	
+	
 	public void initTheGameForRobot(game_service game) {
 		
+		rob=new ArrayList<>();
 		List<String> r=game.getRobots();
 		String RJ=r.toString();
 		try {
@@ -167,7 +171,6 @@ public class MyGameGUI implements Runnable {
 				int dest=jr.getInt("dest");
 				double speed=jr.getDouble("speed");
 				Robot ro=new Robot(src,p1,id,dest,value,speed);
-				
 				rob.add(ro);
 				i++;
 			}
@@ -181,11 +184,11 @@ public class MyGameGUI implements Runnable {
 	}
 		int n=1;
 		for (Robot r1: rob) {
-		StdDraw.setPenRadius(0.050);
-		StdDraw.setPenColor(Color.blue);
+		StdDraw.setPenRadius(0.030);
+		StdDraw.setPenColor(Color.black);
 		StdDraw.point(r1.p.x(), r1.p.y());
-		StdDraw.setPenColor(242, 19, 227);
-		StdDraw.text(rx.get_max() - 0.002 - 0.0035*n, ry.get_max()-0.0005, 
+		//StdDraw.setPenColor(242, 19, 227);
+		StdDraw.text(rx.get_max() - 0.001 - 0.0075*n, ry.get_max()-0.0005, 
 				"robot "+ (n++) + " score: " + r1.value);
 	}
 	
@@ -193,8 +196,8 @@ public class MyGameGUI implements Runnable {
 
 	public void initTheGameForFruit(game_service game) {
 		
-		ArrayList<String> f=new ArrayList<String>();
-		f=(ArrayList<String>) game.getFruits();
+		fru=new ArrayList<Fruit>();
+		List<String> f= game.getFruits();
 		String FJ=f.toString(); 
 		
 		try {
@@ -249,6 +252,7 @@ public class MyGameGUI implements Runnable {
 		}
 	}
 	
+	
 	public edge_data findEdgeFruit(Point3D pf,DGraph d) {
 		edge_data e=new EdgeData();
 		
@@ -265,49 +269,52 @@ public class MyGameGUI implements Runnable {
 		}
 	return null;
 	}
-	private Range findRx(graph g) 
-	{
-		double minX=0, maxX=0;
-		boolean flag = true;
-		for(node_data node :g.getV())
-		{
-			double x = node.getLocation().x();
-			if(flag)
-			{
-				minX = x;
-				maxX = x;
-				flag = false;
+
+	
+	public Range FindXmaxmin(graph g) {
+		
+		double xmin=Double.MAX_VALUE; 
+		double xmax=Double.MIN_VALUE; 
+		Collection<node_data> nc = g.getV();
+		for(node_data n: nc) {
+			
+			double px=n.getLocation().x();
+			
+			if(px>xmax) {
+				xmax=px;
 			}
-
-			if(x < minX) minX = x;
-			if(x > maxX) maxX = x;
+		
+			if(px<xmin) {
+				xmin=px;
+			}
 		}
-		double diff = (maxX-minX);
-		return new Range(minX - diff / 10, maxX + diff / 10);
+	
+		return new Range(xmin-0.001,xmax+0.001);
 	}
-
+	public Range FindYmaxmin(graph g) {
+		
+		double ymin=Double.MAX_VALUE; 
+		double ymax=Double.MIN_VALUE; 
+		Collection<node_data> nc = g.getV();
+		for(node_data n: nc) {
+			
+			double py=n.getLocation().y();
+			
+			if(py>ymax) {
+				ymax=py;
+			}
+		
+			if(py<ymin) {
+				ymin=py;
+			}
+		}
+		
+		return new Range(ymin-0.001,ymax+0.001);
+	}
 	/**
 	 * iterate over all vertices in given graph to find min and max y values
 	 * */
-	private Range findRy(graph g) 
-	{
-		double minY=0, maxY=0;
-		boolean flag = true;
-		for(node_data node :g.getV())
-		{
-			double y = node.getLocation().y();
-			if(flag)
-			{
-				minY = y;
-				maxY = y;
-				flag = false;
-			}
-			if(y < minY) minY = y;
-			if(y > maxY) maxY = y;
-		}
-		double diff = maxY - minY;
-		return new Range(minY - diff / 10, maxY + diff / 10);
-	}
+
 	public void drawGraph(graph G)
 	{
 		StdDraw.setXscale(rx.get_min(),rx.get_max());
@@ -354,26 +361,30 @@ public class MyGameGUI implements Runnable {
 			StdDraw.point(x0, y0);
 		}
 	}
-	private Robot searchForRobot(node_data dest) 
-	{
-		Robot closest = null;
+
+	public Robot CloseRobot(node_data d) {
+	
+		
+		Robot ans=new Robot(); 
 		boolean first = true;
-		for(Robot r : rob)
-		{
+		for(Robot r: rob) {
+			
 			if(first)
 			{
-				closest = r;
+				ans = r;
 				first = false;
 			}
-			else
-			{
-				double oldDiff = closest.getP().distance2D(dest.getLocation());
-				double newDiff = r.getP().distance2D(dest.getLocation());
-				if(newDiff < oldDiff)
-					closest = r;
+		else 
+		{
+			double old1 = ans.getP().distance2D(d.getLocation());
+			double new1 = r.getP().distance2D(d.getLocation());
+			
+			if(new1 < old1)
+				ans = r;
 			}
 		}
-		return closest;
+		return ans;
+		
 	}
 	
 	/**
@@ -401,6 +412,8 @@ public class MyGameGUI implements Runnable {
 		}
 		return closest;
 	}
+
+	
 	public void RefreshFrame()
 	{
 		StdDraw.enableDoubleBuffering();
@@ -410,9 +423,10 @@ public class MyGameGUI implements Runnable {
 		drawGraph(dgraph);
 		initTheGameForFruit(game);
 		initTheGameForRobot(game);
+
 		StdDraw.setPenColor(Color.BLUE);
-		Font f=new Font("BOLD", Font.ITALIC, 18);
-		StdDraw.setFont(f);
+		//Font f=new Font("BOLD", Font.ITALIC, 18);
+		//StdDraw.setFont(f);
 		StdDraw.text(rx.get_max()-0.002, ry.get_max()-0.0005,"time to end: "+ game.timeToEnd() / 1000);
 		StdDraw.show();
 	}
@@ -421,9 +435,9 @@ public static void updateXY(double mouseX, double mouseY)
 
 {
 
-	userX = mouseX;
+	X = mouseX;
 
-	userY = mouseY;
+	Y = mouseY;
 
 }
 	

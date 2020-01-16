@@ -38,7 +38,7 @@ public class SimpleGameClient {
 	public static void test1()   {
 		int scenario_num = 23;
 //		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
-		MyGameGUI m=new MyGameGUI(17);
+		MyGameGUI m=new MyGameGUI(2);
 		
 //		int scenario_num = 23;
 //		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
