@@ -19,6 +19,9 @@ The class KML_Logger allows export of the graph, robots and fruits to KML File a
 
 On WIKI you can read more detail about all the functions and algorithms that are within the above classs and also explanations about the data structure,display system and how to use the project,download and run. Of course you can read there all the details about the functions and about the progress of the game also about the manual game and automatic game.
 
+
+![](https://github.com/talgoldberg/EX3/blob/master/examplePNG.PNG)
+
 This image is for demonstration purposes. it is example of scenario number 15 and there we have 1 robot.
 
 See you on Wiki!
