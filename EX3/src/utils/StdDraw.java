@@ -75,6 +75,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
+import gameClient.MyGameGUI;
+
 /**
  *  The {@code StdDraw} class provides a basic capability for
  *  creating drawings with your programs. It uses a simple graphics model that
@@ -577,9 +579,9 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 	private static Color penColor;
 
 	// default canvas size is DEFAULT_SIZE-by-DEFAULT_SIZE
-	private static final int DEFAULT_SIZE = 512;
-	private static int width  = DEFAULT_SIZE;
-	private static int height = DEFAULT_SIZE;
+	private static final int DEFAULT_SIZE = 812;
+	private static int width  = 1239;
+	private static int height = 595;
 
 	// default pen radius
 	private static final double DEFAULT_PEN_RADIUS = 0.002;
@@ -1754,7 +1756,11 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 	 * This method cannot be called directly.
 	 */
 	@Override
-	public void mouseReleased(MouseEvent e) {
+	public void mouseReleased(MouseEvent e) 
+	{
+		MyGameGUI.updateXY(mouseX, mouseY);
+		
+		
 		synchronized (mouseLock) {
 			isMousePressed = false;
 		}

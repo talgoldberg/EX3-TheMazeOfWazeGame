@@ -167,7 +167,8 @@ public class DGraph implements graph,Serializable{
 							help="";
 						}
 					}
-					p[j]=help;
+				p[j]=help;
+				j=0;
 				double x=Double.parseDouble(p[0]);
 				double y=Double.parseDouble(p[1]);
 				double z=Double.parseDouble(p[2]);
