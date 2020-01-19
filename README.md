@@ -1,7 +1,7 @@
 # Ex3-TheMazeOfWazeGame-java
 
 
-This project Dealing with the subject directed graphs and contains the classes NodeData, EdgeData, DGraph, Graph_Algo and Graph_GUI. In addition in this project you can actually play a game that implements by class MyGameGUI and even play an automatic game with the help of the auto class In addition, the graph, robots and fruits can be exported to KML file with help of the class KML_Logger.
+This project Dealing with the subject directed graphs and contains the classes NodeData, EdgeData, DGraph, Graph_Algo,Fruit,Robot and Graph_GUI. In addition in this project you can actually play a game that implements by class MyGameGUI and even play an automatic game with the help of the auto class In addition, the graph, robots and fruits can be exported to KML file with help of the class KML_Logger.
 
 The class NodeData represents the points in the graph and The class EdgeData represents the edges in the graph.
 
@@ -10,6 +10,8 @@ The Class DGraph that implements the interface graph and represents a deliberate
 The class Graph_Algo that implements the interface Graph_Algorithms and represents a collection of algorithms on directedand and weighted graphs.
 
 The class Graph_GUI that extends JFrame represent graphic interface. in this class you can display a graph, save it, run algorithms on it, and display their results.
+
+The class Fruit and the class Robot represents a fruit/robot for the game.
 
 The class MyGameGUI implements runnable and start a game by choose a random scenario number and allows you to view the selected graph with the number of robots that existing in the scenario, in each scenario has a different playing time. In the game you need to collect fruits that exist on certain points in the graph. At the end of the game you can see the amount of points that each robot has accumulated.
 
