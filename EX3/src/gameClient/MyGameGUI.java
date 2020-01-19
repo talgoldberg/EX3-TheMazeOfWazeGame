@@ -7,7 +7,8 @@ import javax.swing.JOptionPane;
 
 import java.awt.Color;
 import java.awt.Font;
-
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -34,8 +35,10 @@ public class MyGameGUI implements Runnable {
 	 static double Y = 0;
 	 final static double epsilon = 0.0000001;
 	 final static double epsilon2 = 0.00019;
-	
-	game_service game;
+	 static boolean KMLbool = false;
+	 static String KML_file_name;
+	 private static int numgame;
+	 game_service game;
 	graph gr;
 	DGraph dgraph;
 	Graph_GUI gui;
@@ -45,6 +48,7 @@ public class MyGameGUI implements Runnable {
     public MyGameGUI(int g){
 
        game = Game_Server.getServer(g);
+       numgame=g;
        String graph= game.getGraph();
        dgraph= new DGraph();
        dgraph.init(graph);
@@ -56,33 +60,60 @@ public class MyGameGUI implements Runnable {
        t.start();
 
     }
+	public MyGameGUI() {
+		//Selecting a random scenario number between 0-23
+			int scenarioNumber=(int)(Math.random()*23);
+			numgame=scenarioNumber;
+			System.out.println("The scenario number that choosen is "+scenarioNumber);
+			game = Game_Server.getServer(scenarioNumber);
+
+			//Preparing graph to be like the graph on scenario Number in server
+			dgraph = new DGraph();
+			dgraph.init(game.getGraph());
+			
+			//scale x and y
+			rx = FindXmaxmin(dgraph);
+			ry = FindYmaxmin(dgraph);
+			
+			//thread for reload game //play for run function
+			 Thread t=new Thread(this);
+	         t.start();	
+	}
+    
     @Override
 	public void run() 
 	{
-		drawGraph(dgraph); //draw the graph
-		 //Checks how many robots in the game
+		drawGraph(dgraph);
 		int numR=getnumR(game);
-		addRobot1(numR,game); //add all the robots on scenario nodes 
-		 initTheGameForFruit(game);
-		 initTheGameForRobot(game); //להחליף ב init 
-		 
-		
-	
-		
-		if(JOptionPane.showConfirmDialog(null, "press YES to start the game", "TheMaze of Waze", JOptionPane.YES_OPTION) != JOptionPane.YES_OPTION)
-		System.exit(0);
+		addRobot1(numR,game); 
+		initTheGameForFruit(game);
+		initTheGameForRobot(game); 
+		int ans=JOptionPane.showConfirmDialog(null, "you want KML file??", "message", JOptionPane.YES_OPTION);
+		if(ans == 0) 
+		{
+			
+			String input = JOptionPane.showInputDialog("enter your name file");
+			if(input != null && input != "")
+				startKML(input);
+
+		}
+		int press=JOptionPane.showConfirmDialog(null, "The scenario number is choosen, You want to start ?");
+     	if(press!=0) System.exit(0); //if the user press NO or CANCEL, stop the game.
+     	
 		game.startGame();
-		StdDraw.setFont();
-		StdDraw.setPenColor(Color.BLUE);
-		StdDraw.text( rx.get_max()-0.002, ry.get_max()-0.0005,"time to end: "+game.timeToEnd()/1000);
+		
+		//show time
+		StdDraw.setPenRadius(15);
+		StdDraw.setPenColor(Color.BLACK);
+		StdDraw.text( rx.get_max()-0.027, ry.get_max()-0.0005,"End game in:"+game.timeToEnd()/1000);
 		double oldX = X;
 		double oldY = Y;
 		
-		while(game.isRunning())
-		{
+		while(game.isRunning()) {
+		
 			
-			if(X != oldX && Y != oldY)
-			{
+			if(X != oldX && Y != oldY) {
+			
 				node_data dest = searchForDest(X, Y);
 				Robot r = CloseRobot(dest);
 				game.chooseNextEdge(r.getId(), dest.getKey());
@@ -90,16 +121,29 @@ public class MyGameGUI implements Runnable {
 				oldY = Y;
 			}
 			game.move();
-			RefreshFrame();
-			try 
-			{
+			refreshGame();
+			try {
+			
 				Thread.sleep(100);
 			} 
-			catch (InterruptedException e) 
-			{
+			catch (InterruptedException e) {
+			
 				e.printStackTrace();
 			}
 		}
+		if(KMLbool) {
+
+			try {
+				KML_Logger.closeFile(KML_file_name);
+
+			}catch (IOException e) {
+
+				e.printStackTrace();
+
+			}
+
+		}
+		//show the score of all robots.
 		String message = "";
 		int i = 1;
 		for(Robot r : rob)
@@ -109,10 +153,10 @@ public class MyGameGUI implements Runnable {
 
 	}
 	
-	public MyGameGUI() {
-		
-	}
-	
+
+	/*
+	 * Checks and return how many robots we need in the game.
+	 */
 	public int getnumR(game_service game) {
 		int rn=0;
 		String g=game.toString();
@@ -126,14 +170,18 @@ public class MyGameGUI implements Runnable {
 	return rn;
 	}
 	
-	
+	/*
+	 * Adds robots to the graph (random).
+	 */
 	public void addRobot1(int numR,game_service game) {
 		for (int i = 0; i < numR; i++) {
 			game.addRobot(i);
 		}
 	}
 	
-	
+	/*
+	 * Initial builds and draws the robots.
+	 */
 	public void initTheGameForRobot(game_service game) {
 		
 		rob=new ArrayList<>();
@@ -173,6 +221,19 @@ public class MyGameGUI implements Runnable {
 				Robot ro=new Robot(src,p1,id,dest,value,speed);
 				rob.add(ro);
 				i++;
+			
+				if(KMLbool) {
+
+					try {
+						KML_Logger.write(KML_file_name, ro.p.x(), ro.p.y(), "Robot", game.timeToEnd());
+
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+
+					}
+
+				}
+			
 			}
 		
 		
@@ -184,16 +245,20 @@ public class MyGameGUI implements Runnable {
 	}
 		int n=1;
 		for (Robot r1: rob) {
-		StdDraw.setPenRadius(0.030);
+			
+			StdDraw.setPenRadius(0.030);
 		StdDraw.setPenColor(Color.black);
 		StdDraw.point(r1.p.x(), r1.p.y());
-		//StdDraw.setPenColor(242, 19, 227);
+
 		StdDraw.text(rx.get_max() - 0.001 - 0.0075*n, ry.get_max()-0.0005, 
 				"robot "+ (n++) + " score: " + r1.value);
+
 	}
 	
 	}
-
+	/*
+	 * Initial builds and draws the fruits.
+	 */
 	public void initTheGameForFruit(game_service game) {
 		
 		fru=new ArrayList<Fruit>();
@@ -228,10 +293,30 @@ public class MyGameGUI implements Runnable {
 				Point3D p1=new Point3D(x,y,z);
 				double value=jf.getDouble("value");
 				int type=jf.getInt("type");
-				Fruit fr=new Fruit(value,p1,type);
+				Fruit fr=new Fruit(value,p1,type,findEdgeFruit(p1,type));
 				fru.add(fr);
 				i++;
-		}
+		
+				if(KMLbool) {
+					
+					String objType = "";
+						if(fr.type == 1)
+							objType="Apple";
+						else 
+							objType="Banana";
+				
+					try {
+					KML_Logger.write(KML_file_name, fr.p.x(), fr.p.y(), objType, game.timeToEnd());
+				
+					} catch (FileNotFoundException e) {
+						 
+						e.printStackTrace();
+							
+					}
+				
+				}
+			
+			}
 	
 		}catch(Exception error) {
 		error.printStackTrace();
@@ -252,25 +337,29 @@ public class MyGameGUI implements Runnable {
 		}
 	}
 	
-	
-	public edge_data findEdgeFruit(Point3D pf,DGraph d) {
+	/*
+	 * find where put the fruit on the graph.
+	 */
+	public edge_data findEdgeFruit(Point3D pf,int type) {
 		edge_data e=new EdgeData();
 		
-		Collection<node_data> nc = d.getV();
+		Collection<node_data> nc = dgraph.getV();
 		for (node_data n: nc ) {
 			Point3D p1=n.getLocation(); 
-			Collection<edge_data> ec = d.getE(n.getKey());
+			Collection<edge_data> ec = dgraph.getE(n.getKey());
 			for (edge_data e1: ec) {
-				Point3D p2 = d.getNode(e1.getDest()).getLocation();
-				if(pf.distance3D(p1)+pf.distance3D(p2)==p1.distance3D(p2))
-					return e;
+				Point3D p2 = dgraph.getNode(e1.getDest()).getLocation();
+				if(pf.distance3D(p1)+pf.distance3D(p2)-p1.distance3D(p2)<epsilon)
+					return e1;
 			}
 			
 		}
-	return null;
+	return e;
 	}
 
-	
+	/**
+	 * find the values of x (min and max).
+	 * */
 	public Range FindXmaxmin(graph g) {
 		
 		double xmin=Double.MAX_VALUE; 
@@ -291,6 +380,9 @@ public class MyGameGUI implements Runnable {
 	
 		return new Range(xmin-0.001,xmax+0.001);
 	}
+	/**
+	 * find the values of y (min and max).
+	 * */
 	public Range FindYmaxmin(graph g) {
 		
 		double ymin=Double.MAX_VALUE; 
@@ -311,57 +403,56 @@ public class MyGameGUI implements Runnable {
 		
 		return new Range(ymin-0.001,ymax+0.001);
 	}
-	/**
-	 * iterate over all vertices in given graph to find min and max y values
-	 * */
+	/*
+	 * draw the graph
+	 */
 
 	public void drawGraph(graph G)
 	{
 		StdDraw.setXscale(rx.get_min(),rx.get_max());
 		StdDraw.setYscale(ry.get_min(),ry.get_max());
 		StdDraw.setPenColor(Color.BLACK);
-		for(node_data vertex:G.getV())
+		for(node_data myNode:G.getV())
 		{
-			double x0=vertex.getLocation().x();
-			double y0=vertex.getLocation().y();
-			if(G.getE(vertex.getKey())!=null)
+			double x0=myNode.getLocation().x();
+			double y0=myNode.getLocation().y();
+			if(G.getE(myNode.getKey())!=null)
 			{
-				for(edge_data edge:G.getE(vertex.getKey()))
+				for(edge_data edge:G.getE(myNode.getKey()))
 				{
-					StdDraw.setPenRadius(0.0015);
-					StdDraw.setPenColor(Color.orange);
-					Font f=new Font("BOLD", Font.ITALIC, 18);
-					StdDraw.setFont(f);
+					//size and color pen
+					StdDraw.setPenRadius(0.0039); 
+					StdDraw.setPenColor(Color.BLACK);
+				
 					double x1=G.getNode(edge.getDest()).getLocation().x();
 					double y1=G.getNode(edge.getDest()).getLocation().y();
 
-					//draw edges
+					//edges
 					StdDraw.line(x0, y0, x1, y1);
 					StdDraw.setPenRadius(0.02);
 
-					//draw direction points
-					StdDraw.setPenColor(Color.GREEN);
+					//direction 
+					StdDraw.setPenColor(Color.orange);
 					StdDraw.point(x0*0.1+x1*0.9, y0*0.1+y1*0.9);
 
-					//draw dest vertex
-					StdDraw.setPenColor(Color.RED);
+					//draw nodes
+					StdDraw.setPenColor(Color.BLUE);
 					StdDraw.point(x1, y1);
 
-					//draw vertices weights
+					//nodes key
 					StdDraw.setPenColor(Color.BLACK);
-					StdDraw.text(x0,y0 + epsilon2, vertex.getKey()+"");
+					StdDraw.text(x0,y0 + epsilon, myNode.getKey()+"");
 
-					//draw edges weight
-					//					StdDraw.setPenColor(Color.BLACK);
-					//					StdDraw.text((x0+x1)/2, (y0+y1)/2,edge.getWeight()+"");
+				
 				}
 			}
-			StdDraw.setPenRadius(0.02);
-			StdDraw.setPenColor(Color.RED);
+			StdDraw.setPenColor(Color.BLUE);
 			StdDraw.point(x0, y0);
 		}
 	}
-
+	/*
+	 * find the closest robot to the node.
+	 */
 	public Robot CloseRobot(node_data d) {
 	
 		
@@ -388,7 +479,7 @@ public class MyGameGUI implements Runnable {
 	}
 	
 	/**
-	 * iterate over all vertices to find the closest to user`s click
+	 * find the closest node to user click
 	 * */
 	private node_data searchForDest(double mouseX, double mouseY) 
 	{
@@ -413,8 +504,10 @@ public class MyGameGUI implements Runnable {
 		return closest;
 	}
 
-	
-	public void RefreshFrame()
+	/**
+	 * refresh the frame all the time that the game is running
+	 * */
+	public void refreshGame()
 	{
 		StdDraw.enableDoubleBuffering();
 		StdDraw.clear();
@@ -423,23 +516,37 @@ public class MyGameGUI implements Runnable {
 		drawGraph(dgraph);
 		initTheGameForFruit(game);
 		initTheGameForRobot(game);
-
 		StdDraw.setPenColor(Color.BLUE);
-		//Font f=new Font("BOLD", Font.ITALIC, 18);
-		//StdDraw.setFont(f);
 		StdDraw.text(rx.get_max()-0.002, ry.get_max()-0.0005,"time to end: "+ game.timeToEnd() / 1000);
 		StdDraw.show();
 	}
-
-public static void updateXY(double mouseX, double mouseY) 
-
-{
+	/*
+	 * update the values of user click
+	 */
+public static void updateXY(double mouseX, double mouseY) {
 
 	X = mouseX;
-
 	Y = mouseY;
 
 }
-	
+public static void startKML(String file_name) {
+
+	if(!file_name.endsWith(".kml") && !file_name.endsWith(".KML"))
+		file_name += ".kml";
+		KML_file_name = KML_Logger.createFile(file_name, numgame);
+		KMLbool = true;
+}
+
+/**
+
+ * @return true if we already writing to KML file.
+
+ * */
+
+public static boolean KMLbool() {
+
+	return KMLbool;
+
+}
 }
 
