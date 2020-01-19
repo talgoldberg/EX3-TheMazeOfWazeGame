@@ -71,7 +71,6 @@ public class auto implements Runnable{
 
 
 		@Override
-
 		public void run() {
 
 			drawGraph(dgraph);
@@ -146,9 +145,10 @@ public class auto implements Runnable{
 
 		}
 
-
-		// take the robot to the best fruit with shortestPath
-
+ 
+/**
+*take the robot to the best fruit with shortestPath.
+ * */
 		private void StepForRobot() { 
 
 			Iterator<Robot> itr = rob.iterator();
@@ -199,8 +199,10 @@ public class auto implements Runnable{
 		}
 
 		
-		// find the best spot for all the robot too start.
 		
+/**
+* find the best spot for all the robot too start.
+* */
 		public void changeRobot(int numR) {
 			
 			edge_data e=new EdgeData();
@@ -229,8 +231,10 @@ public class auto implements Runnable{
 
 
 	
-		//init and draw the robot.
-
+		
+/**
+*init and draw the robot.
+* */
 		public void DrawRobots(List<String> robots) {
 			
 			rob=new ArrayList<>();
@@ -303,8 +307,10 @@ public class auto implements Runnable{
 		}
 
 
-		//init and draw the fruit.
 		
+/**
+*init and draw the fruit.
+* */
 		private void DrawFruit(game_service game) {
 
 			fru=new ArrayList<Fruit>();
@@ -384,8 +390,10 @@ public class auto implements Runnable{
 
 
 		
-		//find where is the fruit on the edge
 		
+/**
+*find where is the fruit on the edge.
+* */
 		public edge_data findEdgeFruit(Point3D pf,int type) {
 			edge_data e=new EdgeData();
 			
@@ -419,8 +427,10 @@ public class auto implements Runnable{
 		return rn;
 		}
 
-		//draw the graph.
-
+		
+/**
+*draw the graph.
+* */
 		private void drawGraph(graph G) {
 
 		
@@ -469,8 +479,10 @@ public class auto implements Runnable{
 			}
 		}
 		
-		//return the min and max of x point.
-
+		
+/**
+*return the min and max of x point.
+* */
 		public Range FindXmaxmin(graph g) {
 			
 			double xmin=Double.MAX_VALUE; 
@@ -492,8 +504,10 @@ public class auto implements Runnable{
 			return new Range(xmin-0.001,xmax+0.001);
 		}
 
-		//return the min and max of y point.
-
+		
+/**
+*return the min and max of y point.
+* */
 		public Range FindYmaxmin(graph g) {
 			
 			double ymin=Double.MAX_VALUE; 
@@ -515,8 +529,10 @@ public class auto implements Runnable{
 			return new Range(ymin-0.001,ymax+0.001);
 		}
 
-		//Pushes to String extension of .kml.
-
+		
+/**
+*Pushes to String extension of .kml.
+* */
 		public static void startKML(String file_name) { 
 
 			if(!file_name.endsWith(".kml") && !file_name.endsWith(".KML"))
