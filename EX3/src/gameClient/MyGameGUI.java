@@ -61,6 +61,20 @@ public class MyGameGUI implements Runnable {
 
     }
 	public MyGameGUI() {
+			int ans=JOptionPane.showConfirmDialog(null," If you want auto game press YES and if you want menual game press NO", "message", JOptionPane.YES_OPTION);
+		
+ 		if((ans==0))
+ 		{
+ 			String ans2= JOptionPane.showInputDialog("choose a scenarioNumber  (0-23)");
+ 			int scenarioNumber= Integer.parseInt(ans2);
+ 			
+ 		new auto(scenarioNumber);
+ 		
+ 		}
+ 		   
+ 		else if (ans==1)
+ 		{
+		
 		//Selecting a random scenario number between 0-23
 			int scenarioNumber=(int)(Math.random()*23);
 			numgame=scenarioNumber;
@@ -78,6 +92,14 @@ public class MyGameGUI implements Runnable {
 			//thread for reload game //play for run function
 			 Thread t=new Thread(this);
 	         t.start();	
+	         
+	         
+	         
+	         
+	}
+ 		else {
+ 			System.exit(0);
+ 		}
 	}
     
     @Override
