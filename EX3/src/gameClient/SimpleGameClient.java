@@ -36,10 +36,10 @@ public class SimpleGameClient {
 	public static void main(String[] a) {
 		test1();}
 	public static void test1()   {
-		int scenario_num = 23;
+		//int scenario_num = 23;
 //		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
-		//MyGameGUI m=new MyGameGUI(16);
-		auto a=new auto(23);
+		MyGameGUI m=new MyGameGUI();
+		//auto a=new auto(23);
 		
 //		int scenario_num = 23;
 //		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
